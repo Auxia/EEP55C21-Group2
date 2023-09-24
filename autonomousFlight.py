@@ -11,10 +11,10 @@ from cflib.utils import uri_helper
 uri = uri_helper.uri_from_env(default='radio://0/80/2M/EE5C21CFA1')
 
 sequence = [
-    (0.0, 0.0, 0.1, 0),
-    (0.0, 0.0, 0.1, 10),
-    (0.0, 0.0, 0.1, 20),
-    (0.0, 0.0, 0.0, 0)
+    (0.0, 0.0, 0.4, 0),
+    (0.0, 0.0, 0.4, 10),
+    (0.0, 0.0, 0.4, 20),
+    (0.0, 0.0, 0.2, 0)
 ]
 
 def wait_for_position_estimator(scf):
