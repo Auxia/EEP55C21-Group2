@@ -58,12 +58,14 @@ if __name__ == '__main__':
 
             # There is a set of functions that move a specific distance
             # We can move in all directions
-            mc.forward(0.8)
-            mc.back(0.8)
-            time.sleep(1)
 
-            mc.up(0.5)
-            mc.down(0.5)
+            print("start to move up")
+            mc.up(0.3)
+            print("sleep")
+            time.sleep(1)
+            print("start to move down")
+            mc.down(0.3)
+            print("sleep")
             time.sleep(1)
 
             # We can also set the velocity
