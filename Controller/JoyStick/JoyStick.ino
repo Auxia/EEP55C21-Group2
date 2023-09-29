@@ -1,53 +1,66 @@
 /*
- * Created by ArduinoGetStarted.com
- *
- * This example code is in the public domain
- *
- * Tutorial page: https://arduinogetstarted.com/tutorials/arduino-joystick
- */
+  Copyright (c) 2014-2015 NicoHood
+  See the readme for credit to other people.
 
-#include <ezButton.h>
+  Gamepad example
+  Press a button and demonstrate Gamepad actions
 
-#define VRX_PIN  A0 // Arduino pin connected to VRX pin
-#define VRY_PIN  A1 // Arduino pin connected to VRY pin
-#define SW_PIN   2  // Arduino pin connected to SW  pin
+  You can also use Gamepad1,2,3 and 4 as single report.
+  This will use 1 endpoint for each gamepad.
 
-ezButton button(SW_PIN);
+  See HID Project documentation for more infos
+  https://github.com/NicoHood/HID/wiki/Gamepad-API
+*/
 
-int xValue = 0; // To store value of the X axis
-int yValue = 0; // To store value of the Y axis
-int bValue = 0; // To store value of the button
+#include "HID-Project.h"
+
+const int pinLed = LED_BUILTIN;
+const int pinButton = 2;
 
 void setup() {
-  Serial.begin(9600) ;
-  button.setDebounceTime(50); // set debounce time to 50 milliseconds
+  pinMode(pinLed, OUTPUT);
+  pinMode(pinButton, INPUT_PULLUP);
+
+  // Sends a clean report to the host. This is important on any Arduino type.
+  Gamepad.begin();
 }
 
 void loop() {
-  button.loop(); // MUST call the loop() function first
+  if (!digitalRead(pinButton)) {
+    digitalWrite(pinLed, HIGH);
 
-  // read analog X and Y analog values
-  xValue = analogRead(VRX_PIN);
-  yValue = analogRead(VRY_PIN);
+    // Press button 1-32
+    static uint8_t count = 0;
+    count++;
+    if (count == 33) {
+      Gamepad.releaseAll();
+      count = 0;
+    }
+    else
+      Gamepad.press(count);
 
-  // Read the button value
-  bValue = button.getState();
+    // Move x/y Axis to a new position (16bit)
+    Gamepad.xAxis(random(0xFFFF));
+    Gamepad.yAxis(random(0xFFFF));
 
-  if (button.isPressed()) {
-    Serial.println("The button is pressed");
-    // TODO do something here
+    // Go through all dPad positions
+    // values: 0-8 (0==centered)
+    static uint8_t dpad1 = GAMEPAD_DPAD_CENTERED;
+    Gamepad.dPad1(dpad1++);
+    if (dpad1 > GAMEPAD_DPAD_UP_LEFT)
+      dpad1 = GAMEPAD_DPAD_CENTERED;
+
+    static int8_t dpad2 = GAMEPAD_DPAD_CENTERED;
+    Gamepad.dPad2(dpad2--);
+    if (dpad2 < GAMEPAD_DPAD_CENTERED)
+      dpad2 = GAMEPAD_DPAD_UP_LEFT;
+
+    // Functions above only set the values.
+    // This writes the report to the host.
+    Gamepad.write();
+
+    // Simple debounce
+    delay(300);
+    digitalWrite(pinLed, LOW);
   }
-
-  if (button.isReleased()) {
-    Serial.println("The button is released");
-    // TODO do something here
-  }
-
-  // print data to Serial Monitor on Arduino IDE
-  Serial.print("x = ");
-  Serial.print(xValue);
-  Serial.print(", y = ");
-  Serial.print(yValue);
-  Serial.print(" : button = ");
-  Serial.println(bValue);
 }
