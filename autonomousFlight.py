@@ -8,13 +8,11 @@ from cflib.crazyflie.syncLogger import SyncLogger
 from cflib.utils import uri_helper
 
 # URI to the Crazyflie to connect to
-uri = uri_helper.uri_from_env(default='radio://0/80/2M/EE5C21CFA1')
+uri = uri_helper.uri_from_env(default='radio://0/57/2M/EE5C21CFA1')
 
 sequence = [
     (0.0, 0.0, 0.1, 0),
-    (0.0, 0.0, 0.1, 10),
-    (0.0, 0.0, 0.1, 20),
-    (0.0, 0.0, 0.0, 0)
+    (0.0, 0.0, 0.4, 0),
 ]
 
 def wait_for_position_estimator(scf):
@@ -74,7 +72,7 @@ def position_callback(timestamp, data, logconf):
 
 
 def start_position_printing(scf):
-    log_conf = LogConfig(name='Position', period_in_ms=500)
+    log_conf = LogConfig(name='Position', period_in_ms=100)
     log_conf.add_variable('kalman.stateX', 'float')
     log_conf.add_variable('kalman.stateY', 'float')
     log_conf.add_variable('kalman.stateZ', 'float')
@@ -109,6 +107,6 @@ if __name__ == '__main__':
     cflib.crtp.init_drivers()
 
     with SyncCrazyflie(uri, cf=Crazyflie(rw_cache='./cache')) as scf:
-        reset_estimator(scf)
-        # start_position_printing(scf)
+        # reset_estimator(scf)
+        start_position_printing(scf)
         run_sequence(scf, sequence)
