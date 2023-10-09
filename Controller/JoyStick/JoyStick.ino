@@ -1,5 +1,8 @@
 #include "HID-Project.h"
 
+#define deadRangeLow 512-50
+#define deadRangeHi 512+50
+
 const int pinButton = 2;  // Change to your button's pin
 const int pinXAxis = A0;  // Change to your X-Axis pin
 const int pinYAxis = A1;  // Change to your Y-Axis pin
@@ -14,8 +17,8 @@ void setup() {
 
 void loop() {
   // Read joystick and button values
-  int16_t xAxis = analogRead(pinXAxis);
-  int16_t yAxis = analogRead(pinYAxis);
+  int16_t xAxis = readAxis(pinXAxis);
+  int16_t yAxis = readAxis(pinYAxis);
   bool buttonPressed = !digitalRead(pinButton);
 
   // Scale analog readings to gamepad range (-32767 to 32767)
@@ -42,4 +45,16 @@ void loop() {
   
   // Add a small delay to make the sketch more responsive
   delay(10);
+}
+
+int readAxis(byte pin) {
+  int val = analogRead(pin);
+
+  if (val < deadRangeLow)
+    return map(val ,0, deadRangeLow, -127, 0);
+
+  if (val > deadRangeHi)
+    return map(val, deadRangeHigh, 1023, 0, 127));
+
+  return 0;
 }
