@@ -1,0 +1,42 @@
+const int dialPin1 = 5; // Labeled "1" on encoder
+const int dialPin2 = 6; // Labeled "2" on encoder
+const int dialPin3 = 11; // Labeled "4" on encoder
+const int dialPin4 = 12; // Labeled "8" on encoder
+
+int dialVal1 = 0; 
+int dialVal2 = 0; 
+int dialVal3 = 0; 
+int dialVal4 = 0;
+
+int dialAbs = 0; // Absolute position of dial
+
+void setup() {
+  delay( 3000 );
+  pinMode( dialPin1, INPUT_PULLUP ); 
+  pinMode( dialPin2, INPUT_PULLUP );
+  pinMode( dialPin3, INPUT_PULLUP );
+  pinMode( dialPin4, INPUT_PULLUP );
+  Serial.begin( 9600 );
+}
+
+void loop()
+{
+    dialPos();
+    Serial.println( dialVal1 );
+    Serial.println( dialVal2 );
+    Serial.println( dialVal3 );
+    Serial.println( dialVal4 );
+    Serial.println( dialAbs );
+    Serial.println("------"); // For visibility
+    delay( 100 );
+}
+
+void dialPos() { // determine position based on output of each pin
+  dialVal1 = digitalRead( dialPin1 );
+  dialVal2 = digitalRead( dialPin2 );
+  dialVal3 = digitalRead( dialPin3 );
+  dialVal4 = digitalRead( dialPin4 );
+
+  dialAbs = dialPin1 || ( dialPin2<<1 ) || ( dialPin3<<2 ) || ( dialPin4<<3 );
+  
+}
