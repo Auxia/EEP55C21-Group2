@@ -1,24 +1,11 @@
-/*
-  Copyright (c) 2014-2015 NicoHood
-  See the readme for credit to other people.
-
-  Gamepad example
-  Press a button and demonstrate Gamepad actions
-
-  You can also use Gamepad1,2,3 and 4 as single report.
-  This will use 1 endpoint for each gamepad.
-
-  See HID Project documentation for more infos
-  https://github.com/NicoHood/HID/wiki/Gamepad-API
-*/
-
 #include "HID-Project.h"
 
-const int pinLed = LED_BUILTIN;
-const int pinButton = 2;
+const int pinButton = 2;  // Change to your button's pin
+const int pinXAxis = A0;  // Change to your X-Axis pin
+const int pinYAxis = A1;  // Change to your Y-Axis pin
 
 void setup() {
-  pinMode(pinLed, OUTPUT);
+  Serial.begin(9600);
   pinMode(pinButton, INPUT_PULLUP);
 
   // Sends a clean report to the host. This is important on any Arduino type.
@@ -26,41 +13,33 @@ void setup() {
 }
 
 void loop() {
-  if (!digitalRead(pinButton)) {
-    digitalWrite(pinLed, HIGH);
+  // Read joystick and button values
+  int16_t xAxis = analogRead(pinXAxis);
+  int16_t yAxis = analogRead(pinYAxis);
+  bool buttonPressed = !digitalRead(pinButton);
 
-    // Press button 1-32
-    static uint8_t count = 0;
-    count++;
-    if (count == 33) {
-      Gamepad.releaseAll();
-      count = 0;
-    }
-    else
-      Gamepad.press(count);
+  // Scale analog readings to gamepad range (-32767 to 32767)
+  xAxis = map(xAxis, 0, 1023, -32767, 32767);
+  yAxis = map(yAxis, 0, 1023, -32767, 32767);
 
-    // Move x/y Axis to a new position (16bit)
-    Gamepad.xAxis(random(0xFFFF));
-    Gamepad.yAxis(random(0xFFFF));
-
-    // Go through all dPad positions
-    // values: 0-8 (0==centered)
-    static uint8_t dpad1 = GAMEPAD_DPAD_CENTERED;
-    Gamepad.dPad1(dpad1++);
-    if (dpad1 > GAMEPAD_DPAD_UP_LEFT)
-      dpad1 = GAMEPAD_DPAD_CENTERED;
-
-    static int8_t dpad2 = GAMEPAD_DPAD_CENTERED;
-    Gamepad.dPad2(dpad2--);
-    if (dpad2 < GAMEPAD_DPAD_CENTERED)
-      dpad2 = GAMEPAD_DPAD_UP_LEFT;
-
-    // Functions above only set the values.
-    // This writes the report to the host.
-    Gamepad.write();
-
-    // Simple debounce
-    delay(300);
-    digitalWrite(pinLed, LOW);
+  // Update gamepad state
+  Gamepad.xAxis(xAxis);
+  Gamepad.yAxis(yAxis);
+  if (buttonPressed) {
+    Gamepad.press(1);  // Press button 1
+  } else {
+    Gamepad.release(1);  // Release button 1
   }
+
+  // Send updated gamepad state to host
+  Gamepad.write();
+
+  Serial.print("x = ");
+  Serial.print(xAxis);
+  Serial.print(", y = ");
+  Serial.print(yAxis);
+  Serial.println();
+  
+  // Add a small delay to make the sketch more responsive
+  delay(10);
 }
