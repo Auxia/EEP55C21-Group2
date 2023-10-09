@@ -1,7 +1,7 @@
 #include "HID-Project.h"
 
-#define deadRangeLow 512-50
-#define deadRangeHi 512+50
+#define deadRangeLow 512-75
+#define deadRangeHigh 512+75
 
 const int pinButton = 2;  // Change to your button's pin
 const int pinXAxis = A0;  // Change to your X-Axis pin
@@ -21,9 +21,9 @@ void loop() {
   int16_t yAxis = readAxis(pinYAxis);
   bool buttonPressed = !digitalRead(pinButton);
 
-  // Scale analog readings to gamepad range (-32767 to 32767)
-  xAxis = map(xAxis, 0, 1023, -32767, 32767);
-  yAxis = map(yAxis, 0, 1023, -32767, 32767);
+  // // Scale analog readings to gamepad range (-32767 to 32767)
+  // xAxis = map(xAxis, 0, 1023, -32767, 32767);
+  // yAxis = map(yAxis, 0, 1023, -32767, 32767);
 
   // Update gamepad state
   Gamepad.xAxis(xAxis);
@@ -47,14 +47,15 @@ void loop() {
   delay(10);
 }
 
+// readAxis with deadzone - deadzone keeps the values at 0 
 int readAxis(byte pin) {
   int val = analogRead(pin);
 
   if (val < deadRangeLow)
-    return map(val ,0, deadRangeLow, -127, 0);
+    return map(val ,0, deadRangeLow, -32766, 0);
 
-  if (val > deadRangeHi)
-    return map(val, deadRangeHigh, 1023, 0, 127));
+  if (val > deadRangeHigh)
+    return map(val, deadRangeHigh, 1023, 0, 32767);
 
   return 0;
 }
