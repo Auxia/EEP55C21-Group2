@@ -2,6 +2,7 @@
 
 #define deadRangeLow 512-75
 #define deadRangeHigh 512+75
+#define NUM_READINGS 15  // for example, 10 readings for averaging
 
 const int pinButton = 2;  // Change to your button's pin
 const int pinXAxis = A0;  // Change to your X-Axis pin
