@@ -5,8 +5,8 @@
 #define offsetY 0
 #define deadRangeLow 512-75
 #define deadRangeHigh 512+75
-#define deadRangeLow2 512-400
-#define deadRangeHigh2 512+400
+#define deadRangeLow2 512-500
+#define deadRangeHigh2 512+500
 #define outputRange 5000
 #define NUM_READINGS 15  // for example, 10 readings for averaging
 
