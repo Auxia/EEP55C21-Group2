@@ -1,11 +1,13 @@
 
 #include "HID-Project.h"
 
+#define offsetX -1000
+#define offsetY +500
 #define deadRangeLow 512-75
 #define deadRangeHigh 512+75
 #define deadRangeLow2 512-300
 #define deadRangeHigh2 512+300
-#define NUM_READINGS 30  // for example, 10 readings for averaging
+#define NUM_READINGS 15  // for example, 10 readings for averaging
 
 const int pinButton = 2;  // Change to your button's pin
 const int pinXAxis = A0;  // Change to your X-Axis pin
@@ -102,31 +104,45 @@ void loop() {
   delay(10);
 }
 
+int trim(int number) {
+  if (number < -32766) {
+    return -32766;
+  }
+  if (number > 32767) {
+    return 32767;
+  }
+  return number;
+}
+
+int getOffset(byte pin) {
+  return pin == pinXAxis ? offsetX : offsetY; 
+}
+
 // readAxis with deadzone - deadzone keeps the values at 0 
 int readAxis(byte pin) {
   int val = analogRead(pin);
 
   if (val < deadRangeLow2) 
   {
-    return map(val, 0, deadRangeLow2, -32766, -8000);
+    return trim(map(val, 0, deadRangeLow2, -32766, -8000) + getOffset(pin));
   }
 
   if (val < deadRangeLow)
   {
     // return map(val ,0, deadRangeLow, -32766, 0);
-    return map(val, deadRangeLow2, deadRangeLow, -8000, 0);
+    return trim(map(val, deadRangeLow2, deadRangeLow, -8000, 0) + getOffset(pin));
   }
 
   if (val < deadRangeHigh)
   {
-    return 0;
+    return getOffset(pin);
   }
 
   if (val < deadRangeHigh2) {
-    return map(val, deadRangeHigh, deadRangeHigh2, 0, 8000);
+    return trim(map(val, deadRangeHigh, deadRangeHigh2, 0, 8000) + getOffset(pin));
   }
 
   else {
-    return map(val, deadRangeHigh2, 1023, 8000, 32767);
+    return trim(map(val, deadRangeHigh2, 1023, 8000, 32767) + getOffset(pin));
   }
 }
