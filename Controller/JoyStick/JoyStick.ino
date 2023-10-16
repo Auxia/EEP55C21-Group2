@@ -8,7 +8,7 @@ const int pinButton = 2;  // Change to your button's pin
 const int pinXAxis = A0;  // Change to your X-Axis pin
 const int pinYAxis = A1;  // Change to your Y-Axis pin
 
-float scalingFactor = 0.5;
+float exponent = 2;
 
 void setup() {
   Serial.begin(9600);
@@ -52,13 +52,23 @@ void loop() {
 
 // readAxis with deadzone - deadzone keeps the values at 0 
 int readAxis(byte pin) {
+
   int val = analogRead(pin);
+  
+  if (val >= deadRangeLow && val <= deadRangeHigh)
+    return 0;  // Return 0 within the dead zone
 
-  if (val < deadRangeLow)
-    return (int) (scalingFactor * map(val ,0, deadRangeLow, -32766, 0));
+  // Shift the reading so that the dead zone ends at 0
+  int shiftedVal = (val < deadRangeLow) ? val - deadRangeLow : val - deadRangeHigh;
+  
+  // Apply exponential scaling
+  int scaledVal = pow(abs(shiftedVal), exponent) * (shiftedVal > 0 ? 1 : -1);
+  
+  // Re-map the scaled value to the joystick range, considering the dead zone
+  int outputRangeMin = (shiftedVal > 0) ? 0 : -32767;
+  int outputRangeMax = (shiftedVal > 0) ? 32767 : 0;
+  scaledVal = map(scaledVal, 0, pow(max(abs(deadRangeLow), abs(deadRangeHigh)), exponent), outputRangeMin, outputRangeMax);
 
-  if (val > deadRangeHigh)
-    return (int) (scalingFactor * map(val, deadRangeHigh, 1023, 0, 32767));
-
-  return 0;
+  return scaledVal;
+  
 }
