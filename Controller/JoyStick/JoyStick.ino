@@ -8,6 +8,8 @@ const int pinButton = 2;  // Change to your button's pin
 const int pinXAxis = A0;  // Change to your X-Axis pin
 const int pinYAxis = A1;  // Change to your Y-Axis pin
 
+float scalingFactor = 0.5;
+
 void setup() {
   Serial.begin(9600);
   pinMode(pinButton, INPUT_PULLUP);
@@ -53,10 +55,10 @@ int readAxis(byte pin) {
   int val = analogRead(pin);
 
   if (val < deadRangeLow)
-    return map(val ,0, deadRangeLow, -32766, 0);
+    return (int) (scalingFactor * map(val ,0, deadRangeLow, -32766, 0));
 
   if (val > deadRangeHigh)
-    return map(val, deadRangeHigh, 1023, 0, 32767);
+    return (int) (scalingFactor * map(val, deadRangeHigh, 1023, 0, 32767));
 
   return 0;
 }
