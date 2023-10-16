@@ -3,6 +3,8 @@
 
 #define deadRangeLow 512-75
 #define deadRangeHigh 512+75
+#define deadRangeLow2 512-300
+#define deadRangeHigh2 512+300
 #define NUM_READINGS 30  // for example, 10 readings for averaging
 
 const int pinButton = 2;  // Change to your button's pin
@@ -104,11 +106,27 @@ void loop() {
 int readAxis(byte pin) {
   int val = analogRead(pin);
 
+  if (val < deadRangeLow2) 
+  {
+    return map(val, 0, deadRangeLow2, -32766, -8000);
+  }
+
   if (val < deadRangeLow)
-    return map(val ,0, deadRangeLow, -32766, 0);
+  {
+    // return map(val ,0, deadRangeLow, -32766, 0);
+    return map(val, deadRangeLow2, deadRangeLow, -8000, 0);
+  }
 
-  if (val > deadRangeHigh)
-    return map(val, deadRangeHigh, 1023, 0, 32767);
+  if (val < deadRangeHigh)
+  {
+    return 0;
+  }
 
-  return 0;
+  if (val < deadRangeHigh2) {
+    return map(val, deadRangeHigh, deadRangeHigh2, 0, 8000);
+  }
+
+  else {
+    return map(val, deadRangeHigh2, 1023, 8000, 32767);
+  }
 }
