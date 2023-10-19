@@ -12,6 +12,11 @@
 #define zThreshold 11
 #define thrustOutput 100
 
+// For these values the Potentiometer will perform assisted thrust
+#define ASSISTED_THRUST_LOW 3
+#define ASSISTED_THRUST_HIGH 4
+
+
 const int pinButton = 2;  // Change to your button's pin
 const int pinXAxis = A0;  // Change to your X-Axis pin
 const int pinYAxis = A1;  // Change to your Y-Axis pin
@@ -75,11 +80,11 @@ void loop() {
   Gamepad.xAxis(averageX);
   Gamepad.yAxis(averageY);
   Gamepad.zAxis(thrust);
-  if (buttonPressed) {
-    Gamepad.press(1);  // Press button 1
-  } else {
-    Gamepad.release(1);  // Release button 1
-  }
+  // if (thrust == 1) {
+  //   Gamepad.press(1);  // Press button 1
+  // } else {
+  //   Gamepad.release(1);  // Release button 1
+  // }
 
   // Send updated gamepad state to host
   Gamepad.write();
@@ -146,9 +151,33 @@ int readThrust() {
   int dialVal3 = digitalRead(dialPin3);
   int dialVal4 = digitalRead(dialPin4);
   int zAxis = 8*(1-dialVal4) + 4*(1-dialVal3) + 2*(1-dialVal2) + 1-dialVal1; // thrust
+
+  Serial.print("zAxis = ");
+  Serial.print(zAxis);
   
+  if(zAxis == 0){
+    
+    // Edge case-> does not register 0 as non assisted control when returning from assisted control
+    Gamepad.release(1); 
+    return 0;
+  }
+
+  if (zAxis < ASSISTED_THRUST_LOW) {
+    // Same as previous case. We can not let the assisted mode come in place here
+    Gamepad.release(1); 
+    return map(zAxis, 1, ASSISTED_THRUST_LOW, 30, thrustOutput);
+  }
+
+  // Check for assisted thrust condition
+  if (zAxis >= ASSISTED_THRUST_LOW && zAxis <= ASSISTED_THRUST_HIGH) {
+    Gamepad.press(1);  // Press button 1
+    return 1;  // Assisted thrust value
+  } else {
+    Gamepad.release(1);  // Release button 1
+  }
+
   if (zAxis < zThreshold) {
-    return map(zAxis, 0, zThreshold, 0, thrustOutput);
+    return map(zAxis, ASSISTED_THRUST_HIGH, zThreshold, 70, thrustOutput);
   }
   else {
     return map(zAxis, zThreshold, 15, thrustOutput, 127);
