@@ -9,6 +9,8 @@
 #define deadRangeHigh2 512+500
 #define outputRange 5000
 #define NUM_READINGS 15  // for example, 10 readings for averaging
+#define zThreshold 11
+#define thrustOutput 100
 
 const int pinButton = 2;  // Change to your button's pin
 const int pinXAxis = A0;  // Change to your X-Axis pin
@@ -65,25 +67,14 @@ void loop() {
   averageX = totalX / NUM_READINGS;
   averageY = totalY / NUM_READINGS;
 
-  int8_t zAxis = 0;
   bool buttonPressed = !digitalRead(pinButton);
 
-  // Read grey code encoder 
-  int dialVal1 = digitalRead(dialPin1);
-  int dialVal2 = digitalRead(dialPin2);
-  int dialVal3 = digitalRead(dialPin3);
-  int dialVal4 = digitalRead(dialPin4);
-  zAxis = 8*(1-dialVal4) + 4*(1-dialVal3) + 2*(1-dialVal2) + 1-dialVal1; // thrust
-
-  // Scale analog readings to gamepad range (-32767 to 32767)
-  // xAxis = map(xAxis, 0, 1023, -32767, 32767);
-  // yAxis = map(yAxis, 0, 1023, -32767, 32767);
-  zAxis = map(zAxis, 0, 15, 0, 127);
+  int8_t thrust = readThrust();
 
   // Update gamepad state
   Gamepad.xAxis(averageX);
   Gamepad.yAxis(averageY);
-  Gamepad.zAxis(zAxis);
+  Gamepad.zAxis(thrust);
   if (buttonPressed) {
     Gamepad.press(1);  // Press button 1
   } else {
@@ -98,7 +89,7 @@ void loop() {
   Serial.print(", y = ");
   Serial.print(averageY);
   Serial.print(", z (thrust) = ");
-  Serial.print(zAxis);
+  Serial.print(thrust);
   Serial.println();
   
   // Add a small delay to make the sketch more responsive
@@ -145,5 +136,21 @@ int readAxis(byte pin) {
 
   else {
     return trim(map(val, deadRangeHigh2, 1023, outputRange, 32767) + getOffset(pin));
+  }
+}
+
+int readThrust() {
+  // Read grey code encoder 
+  int dialVal1 = digitalRead(dialPin1);
+  int dialVal2 = digitalRead(dialPin2);
+  int dialVal3 = digitalRead(dialPin3);
+  int dialVal4 = digitalRead(dialPin4);
+  int zAxis = 8*(1-dialVal4) + 4*(1-dialVal3) + 2*(1-dialVal2) + 1-dialVal1; // thrust
+  
+  if (zAxis < zThreshold) {
+    return map(zAxis, 0, zThreshold, 0, thrustOutput);
+  }
+  else {
+    return map(zAxis, zThreshold, 15, thrustOutput, 127);
   }
 }
