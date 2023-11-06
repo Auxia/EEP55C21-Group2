@@ -55,35 +55,49 @@ if __name__ == '__main__':
         # We take off when the commander is created
         with MotionCommander(scf) as mc:
 
-            side_length = 0.55  # Adjust this value as needed
+            side_length = 0.75# Adjust this value as needed
             vel = 0.6
-            rope_triangle_length = 0.2
+            rope_triangle_length = 0.5
 
             time.sleep(1)
 
             print("up")
 
-            mc.up(0.5, velocity=vel)
+            mc.up(0.8, velocity=vel)
+
+            print("forward")
+            mc.forward(0.8, velocity=vel)
 
             print("lower circle")
-            mc.circle_right(side_length, velocity=vel)
+            mc.circle_right(side_length, velocity=vel, angle_degrees=180)
+
+            mc.forward(1.6, velocity=vel)
 
             print("upper circle")
-            mc.circle_left(side_length, velocity=vel)
+            mc.circle_right(side_length, velocity=vel, angle_degrees=180)
+
+            mc.forward(1.6, velocity=vel)
+
+            mc.circle_left(side_length, velocity=vel, angle_degrees=180)
+
+            mc.forward(0.8, velocity=vel)
+            
+            print("Turning Left")
+            mc.turn_left(90)
 
             mc.stop()
 
             print("rope")
-            mc.back(0.4, velocity=vel)
+            #mc.back(0.4, velocity=vel)
 
             print("go above rope")
 
-            mc.move_distance(0, -rope_triangle_length,
-                             rope_triangle_length, velocity=vel)
+            mc.move_distance(distance_x_m=rope_triangle_length+0.3, distance_y_m=0,
+                           distance_z_m=rope_triangle_length+0.3, velocity=vel)
             time.sleep(1)
 
-            mc.move_distance(0, -rope_triangle_length, -
-                             rope_triangle_length, velocity=vel)
+            mc.move_distance(distance_x_m=rope_triangle_length, distance_y_m=0,
+                             distance_z_m=-rope_triangle_length, velocity=vel)
             time.sleep(1)
 
             # mc.back(0.1, velocity=vel)
