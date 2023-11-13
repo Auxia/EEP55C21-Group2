@@ -3,25 +3,18 @@
 #include "HID-Project.h"
 
 int status = WL_IDLE_STATUS;
-
 const char* ssid = "MotionControl";
 const char* password = "frenchpilote"; 
-
 WiFiServer server(80);
 
 void setup() {
   Serial.begin(9600);
-
-  while(!Serial) {
-    ;
-  }
+  while (!Serial);
 
   Serial.println("Access Point Enabled");
 
-  // check for the WiFi module:
   if (WiFi.status() == WL_NO_MODULE) {
     Serial.println("Communication with WiFi module failed!");
-    // don't continue
     while (true);
   }
 
@@ -36,28 +29,20 @@ void setup() {
   status = WiFi.beginAP(ssid, password);
   if (status != WL_AP_LISTENING) {
     Serial.println("Creating access point failed");
-    // don't continue
     while (true);
   }
 
-  // wait 10 seconds for connection:
-  delay(10000);
-
+  delay(10000); // wait for connection
   server.begin();
   Gamepad.begin();
 }
 
 void loop() {
-  // compare the previous status to the current status
   if (status != WiFi.status()) {
-    // it has changed update the variable
     status = WiFi.status();
-
     if (status == WL_AP_CONNECTED) {
-      // a device has connected to the AP
       Serial.println("Device connected to AP");
     } else {
-      // a device has disconnected from the AP, and we are back in listening mode
       Serial.println("Device disconnected from AP");
     }
   }
@@ -65,22 +50,47 @@ void loop() {
   WiFiClient client = server.available();
   if (client) {
     Serial.println("New Client Connected");
-    String data = ""; // String to store incoming data from client
+    String data = "";
 
-    // Loop while the client is connected
     while (client.connected()) {
       if (client.available()) {
-        String data = client.readStringUntil('\n');
-        Serial.println(data);
-        float x = data.toFloat();
-        Gamepad.xAxis(x);
-        Gamepad.write();
-        }
-      }
+        data = client.readStringUntil('\n');
 
-    // Client has disconnected
+        int commaIndex = data.indexOf(',');
+        if (commaIndex == -1) {
+          // Data from Left Hand Controller
+          float thrust = data.toFloat();
+          // Update gamepad with thrust value
+          // Example: Gamepad.setThrust(thrust);
+        } else {
+          // Data from Right Hand Controller
+          float x = getValue(data, ',', 0).toFloat();
+          float y = getValue(data, ',', 1).toFloat();
+          float z = getValue(data, ',', 2).toFloat();
+          // Update gamepad with x, y, z values
+          // Example: Gamepad.setX(x); Gamepad.setY(y); Gamepad.setZ(z);
+        }
+        Gamepad.write();
+        Serial.println(data);
+      }
+    }
+
     Serial.println("Client Disconnected.");
     client.stop();
   }
 }
 
+String getValue(String data, char separator, int index) {
+  int found = 0;
+  int strIndex[] = {0, -1};
+  int maxIndex = data.length() - 1;
+
+  for (int i = 0; i <= maxIndex && found <= index; i++) {
+    if (data.charAt(i) == separator || i == maxIndex) {
+        found++;
+        strIndex[0] = strIndex[1] + 1;
+        strIndex[1] = (i == maxIndex) ? i+1 : i;
+    }
+  }
+  return found > index ? data.substring(strIndex[0], strIndex[1]) : "";
+}

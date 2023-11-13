@@ -37,14 +37,6 @@ void loop() {
     String data = String(x);
     Serial.println(data);
     client.println(data);
-
-    // // Convert the String to a byte array
-    // const char *dataCharArray = data.c_str();
-
-    // Serial.println(dataCharArray);
-
-    // // Write the byte array to the client
-    // client.write((const uint8_t *)dataCharArray, strlen(dataCharArray));
   }
   delay(100); // Adjust delay for data transmission rate
 }
