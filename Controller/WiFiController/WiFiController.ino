@@ -2,10 +2,10 @@
 #include <WiFiNINA.h>
 #include "HID-Project.h"
 
-const char* ssid = MotionControl;
-const char* password = frenchpilote; 
+int status = WL_IDLE_STATUS;
 
-IP_ADDRESS = IPAddress(192, 168, 1, 100);
+const char* ssid = "MotionControl";
+const char* password = "frenchpilote"; 
 
 WiFiServer server(80);
 
@@ -16,7 +16,7 @@ void setup() {
     ;
   }
 
-  Serial.println(Access Point Enabled)
+  Serial.println("Access Point Enabled");
 
   // check for the WiFi module:
   if (WiFi.status() == WL_NO_MODULE) {
@@ -29,8 +29,6 @@ void setup() {
   if (fv < WIFI_FIRMWARE_LATEST_VERSION) {
     Serial.println("Please upgrade the firmware");
   }
-
-  WiFi.config(IP_ADDRESS)
 
   Serial.print("Creating access point named: ");
   Serial.println(ssid);
@@ -46,6 +44,7 @@ void setup() {
   delay(10000);
 
   server.begin();
+  Gamepad.begin();
 }
 
 void loop() {
@@ -61,6 +60,27 @@ void loop() {
       // a device has disconnected from the AP, and we are back in listening mode
       Serial.println("Device disconnected from AP");
     }
+  }
+
+  WiFiClient client = server.available();
+  if (client) {
+    Serial.println("New Client Connected");
+    String data = ""; // String to store incoming data from client
+
+    // Loop while the client is connected
+    while (client.connected()) {
+      if (client.available()) {
+        String data = client.readStringUntil('\n');
+        Serial.println(data);
+        float x = data.toFloat();
+        Gamepad.xAxis(x);
+        Gamepad.write();
+        }
+      }
+
+    // Client has disconnected
+    Serial.println("Client Disconnected.");
+    client.stop();
   }
 }
 

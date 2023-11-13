@@ -3,11 +3,11 @@
 #include <Arduino_LSM6DS3.h>
 
 // Replace with your network credentials
-const char* ssid = "your_network_SSID";
-const char* password = "your_password";
+const char* ssid = "MotionControl";
+const char* password = "frenchpilote";
 
 // Replace with the IP address of the PC Controller
-IPAddress server(192, 168, 1, 100);
+IPAddress server(192, 168, 4, 1);
 WiFiClient client;
 
 void setup() {
@@ -35,7 +35,16 @@ void loop() {
   if (IMU.accelerationAvailable()) {
     IMU.readAcceleration(x, y, z);
     String data = String(x);
+    Serial.println(data);
     client.println(data);
+
+    // // Convert the String to a byte array
+    // const char *dataCharArray = data.c_str();
+
+    // Serial.println(dataCharArray);
+
+    // // Write the byte array to the client
+    // client.write((const uint8_t *)dataCharArray, strlen(dataCharArray));
   }
   delay(100); // Adjust delay for data transmission rate
 }
