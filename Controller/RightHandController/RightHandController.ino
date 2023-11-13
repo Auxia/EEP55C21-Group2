@@ -2,10 +2,10 @@
 #include <WiFiNINA.h>
 #include <Arduino_LSM6DS3.h>
 
-const char* ssid = "SSID";
-const char* password = "PASSWORD";
+const char* ssid = "MotionControl";
+const char* password = "frenchpilote";
 
-IPAddress server(192, 168, 1, 100);
+IPAddress server(192, 168, 4, 1);
 WiFiClient client;
 
 void setup() {
