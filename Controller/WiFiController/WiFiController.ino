@@ -2,82 +2,86 @@
 #include <WiFiNINA.h>
 #include "HID-Project.h"
 
-int status = WL_IDLE_STATUS;
 const char* ssid = "MotionControl";
 const char* password = "frenchpilote"; 
 WiFiServer server(80);
 
+WiFiClient clients[2];
+String leftHandData = "";   // Stores the latest data from Left Hand Controller
+String rightHandData = "";  // Stores the latest data from Right Hand Controller
+
 void setup() {
   Serial.begin(9600);
-  while (!Serial);
-
-  Serial.println("Access Point Enabled");
-
-  if (WiFi.status() == WL_NO_MODULE) {
-    Serial.println("Communication with WiFi module failed!");
-    while (true);
+  WiFi.beginAP(ssid, password);
+  while (WiFi.status() == WL_NO_MODULE) {
+    delay(500);
   }
-
-  String fv = WiFi.firmwareVersion();
-  if (fv < WIFI_FIRMWARE_LATEST_VERSION) {
-    Serial.println("Please upgrade the firmware");
-  }
-
-  Serial.print("Creating access point named: ");
-  Serial.println(ssid);
-
-  status = WiFi.beginAP(ssid, password);
-  if (status != WL_AP_LISTENING) {
-    Serial.println("Creating access point failed");
-    while (true);
-  }
-
-  delay(10000); // wait for connection
   server.begin();
   Gamepad.begin();
 }
 
 void loop() {
-  if (status != WiFi.status()) {
-    status = WiFi.status();
-    if (status == WL_AP_CONNECTED) {
-      Serial.println("Device connected to AP");
-    } else {
-      Serial.println("Device disconnected from AP");
-    }
-  }
-
-  WiFiClient client = server.available();
-  if (client) {
-    Serial.println("New Client Connected");
-    String data = "";
-
-    while (client.connected()) {
-      if (client.available()) {
-        data = client.readStringUntil('\n');
-
-        int commaIndex = data.indexOf(',');
-        if (commaIndex == -1) {
-          // Data from Left Hand Controller
-          float thrust = data.toFloat();
-          // Update gamepad with thrust value
-          // Example: Gamepad.setThrust(thrust);
-        } else {
-          // Data from Right Hand Controller
-          float x = getValue(data, ',', 0).toFloat();
-          float y = getValue(data, ',', 1).toFloat();
-          float z = getValue(data, ',', 2).toFloat();
-          // Update gamepad with x, y, z values
-          // Example: Gamepad.setX(x); Gamepad.setY(y); Gamepad.setZ(z);
-        }
-        Gamepad.write();
-        Serial.println(data);
+  // Check for new client connections
+  WiFiClient newClient = server.available();
+  if (newClient) {
+    // Check if new connection is from a known client or a new one
+    bool knownClient = false;
+    for (int i = 0; i < 2; i++) {
+      if (clients[i] && clients[i].remoteIP() == newClient.remoteIP()) {
+        knownClient = true;
+        break;
       }
     }
-
-    Serial.println("Client Disconnected.");
-    client.stop();
+    
+    // If it's a new client, add it to the list
+    if (!knownClient) {
+      for (int i = 0; i < 2; i++) {
+        if (!clients[i]) {
+          clients[i] = newClient;
+          Serial.println("New client connected");
+          break;
+        }
+      }
+    }
   }
+
+  // Read data from each client
+  for (int i = 0; i < 2; i++) {
+    if (clients[i] && clients[i].available()) {
+      String data = clients[i].readStringUntil('\n');
+      Serial.println(data);
+
+      if (data.startsWith("L:")) {
+        leftHandData = data.substring(2); // Extract thrust
+      } else if (data.startsWith("R:")) {
+        rightHandData = data.substring(2); // Extract roll, pitch, yaw
+      }
+
+      // If data from both controllers is available, process it
+      if (leftHandData.length() > 0 && rightHandData.length() > 0) {
+        processAndSendData();
+        leftHandData = "";
+        rightHandData = "";
+      }
+    }
+  }
+}
+
+void processAndSendData() {
+  // Extract thrust, roll, pitch, yaw values
+  float thrust = leftHandData.toFloat();
+  float roll = getValue(rightHandData, ',', 0).toFloat();
+  float pitch = getValue(rightHandData, ',', 1).toFloat();
+  float yaw = getValue(rightHandData, ',', 2).toFloat();
+
+  // Send data to cfclient via HID
+  // Example: Gamepad.setX(roll); Gamepad.setY(pitch); Gamepad.setZ(yaw); Gamepad.setThrottle(thrust);
+  Gamepad.write();
+
+  Serial.print("Sent Combined Data - Thrust: "); Serial.print(thrust);
+  Serial.print(", Roll: "); Serial.print(roll);
+  Serial.print(", Pitch: "); Serial.print(pitch);
+  Serial.print(", Yaw: "); Serial.println(yaw);
 }
 
 String getValue(String data, char separator, int index) {

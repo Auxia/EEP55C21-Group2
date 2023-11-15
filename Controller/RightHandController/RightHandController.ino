@@ -4,38 +4,32 @@
 
 const char* ssid = "MotionControl";
 const char* password = "frenchpilote";
-
 IPAddress server(192, 168, 4, 1);
 WiFiClient client;
 
 void setup() {
-    Serial.begin(9600);
-    while (!Serial);
-    if (!IMU.begin()) {
-        Serial.println("Failed to initialize IMU!");
-        while (1);
-    }
-
-    WiFi.begin(ssid, password);
-    while (WiFi.status() != WL_CONNECTED) {
-        delay(1000);
-        Serial.println("Connecting to WiFi..");
-    }
-
-    if (client.connect(server, 80)) {
-        Serial.println("Connected to server!");
-    } else {
-        Serial.println("Failed to connect to server!");
-    }
+  Serial.begin(9600);
+  while (!IMU.begin()) {
+    Serial.println("Failed to initialize IMU!");
+    delay(1000);
+  }
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.println("Connecting to WiFi...");
+  }
+  if (client.connect(server, 80)) {
+    Serial.println("Connected to server");
+  } else {
+    Serial.println("Failed to connect to server");
+  }
 }
 
 void loop() {
-  float x, y, z;
+  float roll, pitch, yaw;
   if (IMU.accelerationAvailable()) {
-    IMU.readAcceleration(x, y, z);
-    String data = String(x) + "," + String(y) + "," + String(z);
-    client.println(data);
+    IMU.readAcceleration(roll, pitch, yaw);
+    client.println("R:" + String(roll) + "," + String(pitch) + "," + String(yaw));
   }
-  delay(100); // Adjust delay for data transmission rate
+  delay(100);
 }
-

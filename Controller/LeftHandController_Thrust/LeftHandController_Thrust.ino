@@ -2,11 +2,8 @@
 #include <WiFiNINA.h>
 #include <Arduino_LSM6DS3.h>
 
-// Replace with your network credentials
 const char* ssid = "MotionControl";
 const char* password = "frenchpilote";
-
-// Replace with the IP address of the PC Controller
 IPAddress server(192, 168, 4, 1);
 WiFiClient client;
 
@@ -16,13 +13,11 @@ void setup() {
     Serial.println("Failed to initialize IMU!");
     delay(1000);
   }
-
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
     Serial.println("Connecting to WiFi...");
   }
-
   if (client.connect(server, 80)) {
     Serial.println("Connected to server");
   } else {
@@ -31,13 +26,10 @@ void setup() {
 }
 
 void loop() {
-  float x, y, z;
+  float thrust, y, z;
   if (IMU.accelerationAvailable()) {
-    IMU.readAcceleration(x, y, z);
-    String data = String(x);
-    Serial.println(data);
-    client.println(data);
+    IMU.readAcceleration(thrust, y, z); // Assuming thrust data is in the x-axis
+    client.println("L:" + String(thrust));
   }
-  delay(100); // Adjust delay for data transmission rate
+  delay(100);
 }
-
