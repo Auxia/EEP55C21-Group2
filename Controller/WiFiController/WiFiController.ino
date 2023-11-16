@@ -74,8 +74,11 @@ void processAndSendData() {
   float pitch = getValue(rightHandData, ',', 1).toFloat();
   float yaw = getValue(rightHandData, ',', 2).toFloat();
 
+  gamepadThrust = mapThrustToGamepadRange(thrust);
+
   // Send data to cfclient via HID
   // Example: Gamepad.setX(roll); Gamepad.setY(pitch); Gamepad.setZ(yaw); Gamepad.setThrottle(thrust);
+  Gamepad.setThrottle(gamepadThrust);
   Gamepad.write();
 
   Serial.print("Sent Combined Data - Thrust: "); Serial.print(thrust);
@@ -97,4 +100,18 @@ String getValue(String data, char separator, int index) {
     }
   }
   return found > index ? data.substring(strIndex[0], strIndex[1]) : "";
+}
+
+// Function to map IMU thrust data to Gamepad range
+int mapThrustToGamepadRange(float thrust) {
+    // Define the IMU data range
+    float minThrust = -1.0; // Minimum thrust value from IMU
+    float maxThrust = 1.0;  // Maximum thrust value from IMU
+
+    // Define the Gamepad input range
+    int minGamepad = -32768;  // I dont remember the range
+    int maxGamepad = 32767;   
+
+    // Map the IMU thrust value to the Gamepad range
+    return (int)((thrust - minThrust) / (maxThrust - minThrust) * (maxGamepad - minGamepad) + minGamepad);
 }
