@@ -26,10 +26,10 @@ void setup() {
 }
 
 void loop() {
-  float thrust, y, z;
+  float thrust, yaw, z;
   if (IMU.accelerationAvailable()) {
-    IMU.readAcceleration(thrust, y, z); // Assuming thrust data is in the x-axis
-    client.println("L:" + String(thrust));
+    IMU.readAcceleration(thrust, yaw, z); // Assuming thrust data is in the x-axis
+    client.println("L:" + String(thrust) + "," + String(yaw));
   }
   delay(100);
 }

@@ -26,10 +26,10 @@ void setup() {
 }
 
 void loop() {
-  float roll, pitch, yaw;
+  float roll, pitch, z;
   if (IMU.accelerationAvailable()) {
-    IMU.readAcceleration(roll, pitch, yaw);
-    client.println("R:" + String(roll) + "," + String(pitch) + "," + String(yaw));
+    IMU.readAcceleration(roll, pitch, z);
+    client.println("R:" + String(roll) + "," + String(pitch));
   }
   delay(100);
 }
