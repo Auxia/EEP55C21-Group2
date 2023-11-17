@@ -37,12 +37,16 @@ def land(scf):
 
 
 def hover_sequence(scf):
+    print("hello3")
     take_off(scf)
+    print("hello4")
     land(scf)
 
 
 uris = {
+    # 'radio://0/57/2M/EE5C21CFA1',
     'radio://0/80/2M/EE5C21CFB1',
+    'radio://0/80/2M/EE5C21CFC1',
     # 'radio://0/20/2M/E7E7E7E702',
     # 'radio://0/20/2M/E7E7E7E703',
     # 'radio://0/20/2M/E7E7E7E704',
@@ -50,10 +54,12 @@ uris = {
 }
 
 if __name__ == '__main__':
+    print("hello")
     cflib.crtp.init_drivers()
     factory = CachedCfFactory(rw_cache='./cache')
     with Swarm(uris, factory=factory) as swarm:
+        print("hello2")
         swarm.parallel_safe(light_check)
-        swarm.reset_estimators()
+        # swarm.reset_estimators()
 
         swarm.sequential(hover_sequence)
