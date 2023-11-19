@@ -83,6 +83,20 @@ void processAndSendData() {
 
   // Going to have to implement Yaw using the left controller itself
   int gamepadYaw = mapIMUToGamepadRangeNonLinear(yaw, -32768, -25000, 25000, 32767);
+
+  // Stabalizing the values near the resting position of the controller
+  gamepadRoll = stableMinValues(2000, gamepadRoll);
+  gamepadPitch = stableMinValues(2000, gamepadPitch);
+  gamepadYaw = stableMinValues(2000, gamepadYaw);
+
+  // Assisted flying height
+  if (gamepadThrust >30 && gamepadThrust <=80){
+    gamepadThrust = 1;
+    Gamepad.press(1); 
+  }
+  else{
+    Gamepad.release(1); 
+  }
   
   // The values are inverted here as compared to how it should be for a controller naturally
   gamepadPitch = -gamepadPitch;
@@ -168,5 +182,14 @@ int mapIMUToGamepadRangeNonLinear(float IMUData, int minGamepad, int midMinGamep
           // Scale quickly in the negative outer range
           return (int)(percent * (minGamepad - midMinGamepad) + midMinGamepad);
       }
+  }
+}
+
+// Need this function to ignore nearby values for stability in hand rest position
+int stableMinValues(int val, int gamepadData){
+  if (gamepadData <= val && gamepadData >= 0 || gamepadData >= -1*val && gamepadData <= 0) {
+    return 0;
+  } else {
+    return gamepadData;
   }
 }
