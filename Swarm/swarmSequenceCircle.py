@@ -49,8 +49,9 @@ URI1 = 'radio://0/80/2M/EE5C21CFC1'
 
 # d: diameter of circle
 # z: altitude
-params0 = {'d': 0.3, 'z': 0.6, 'startBottom': True}
-params1 = {'d': 0.3, 'z': 0.6+0.3, 'startBottom': False}
+params0 = {'d': 0.4, 'z': 0.6, 'startBottom': True}
+params1 = {'d': 0.4, 'z': 0.6+0.3, 'startBottom': False}
+largeD = 0.7
 
 
 # uris = {
@@ -91,7 +92,7 @@ def run_sequence(scf, params):
     # Base altitude in meters
     base = 0.2
 
-    corr = 1
+    corr = 5
 
     d = params['d']
     z = params['z']
@@ -120,28 +121,38 @@ def run_sequence(scf, params):
     #         time.sleep(fsi)
 
     circle_time = 8
+    large_circle_time = 4
     steps = circle_time*fs
-    for _ in range(3):
+    for j in range(large_circle_time):
         for i in range(steps):
             if params['startBottom']:
+                print(i)
                 cf.commander.send_hover_setpoint(
-                    corr*d*math.pi*math.sin(2*math.pi*i/steps)/fs, 0, 0, z+(d/2)*math.sin(2*math.pi*i/steps))
+                    largeD*math.pi/(circle_time*large_circle_time), corr*(2*math.pi/steps)*(d/2)*math.cos(2*math.pi*i/steps), 360.0/(circle_time*large_circle_time), z+(d/2)*(1-math.cos(2*math.pi*i/steps)))
             else:
                 cf.commander.send_hover_setpoint(
-                    corr*d*math.pi*math.sin(2*math.pi*i/steps)/fs, 0, 0, z-(d/2)*math.sin(2*math.pi*i/steps))
+                    largeD*math.pi/(circle_time*large_circle_time), -corr*(2*math.pi/steps)*(d/2)*math.cos(2*math.pi*i/steps), 360.0/(circle_time*large_circle_time), z+(d/2)*(1+math.cos(2*math.pi*i/steps)))
 
             time.sleep(fsi)
 
-    poshold(cf, 2, z)
+    if params['startBottom']:
+        poshold(cf, 2, z)
+    else:
+        poshold(cf, 2, z+d)
 
     # go back to base
 
-    # for r in range(ramp):
-    #     cf.commander.send_hover_setpoint(0, 0, 0,
-    #                                      base + (ramp - r) * (z - base) / ramp)
-    #     time.sleep(fsi)
+    for r in range(ramp):
+        if params['startBottom']:
+            cf.commander.send_hover_setpoint(0, 0, 0,
+                                             base + (ramp - r) * (z - base) / ramp)
+        else:
+            cf.commander.send_hover_setpoint(0, 0, 0,
+                                             base + (ramp - r) * (z+d - base) / ramp)
 
-    # poshold(cf, 1, base)
+        time.sleep(fsi)
+
+    poshold(cf, 1, base)
 
     cf.commander.send_stop_setpoint()
     # Hand control over to the high level commander to avoid timeout and locking of the Crazyflie
