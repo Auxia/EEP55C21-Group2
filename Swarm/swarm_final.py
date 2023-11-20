@@ -27,18 +27,14 @@ def take_off(scf):
     time.sleep(3)
 
 
-def land(scf):
+""" def run_sequence(scf, params):
     commander = scf.cf.high_level_commander
+    startTime = time.time()
 
-    commander.land(0.0, 2.0)
-    time.sleep(2)
+    for _ in range(100):
+        elapsed = time.time() - startTime
 
-    commander.stop()
-
-
-def hover_sequence(scf):
-    take_off(scf)
-    land(scf)
+        xSetPoint =  """
 
 
 uris = {
@@ -51,11 +47,14 @@ uris = {
     # Add more URIs if you want more copters in the swarm
 }
 
+
 if __name__ == '__main__':
     cflib.crtp.init_drivers()
     factory = CachedCfFactory(rw_cache='./cache')
     with Swarm(uris, factory=factory) as swarm:
         swarm.parallel_safe(light_check)
-        # swarm.reset_estimators()
+        swarm.reset_estimators()
 
-        swarm.sequential(hover_sequence)
+        swarm.parallel_safe(run_sequence, params)
+
+        # warm.sequential(hover_sequence)
