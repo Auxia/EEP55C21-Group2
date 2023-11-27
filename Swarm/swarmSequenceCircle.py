@@ -86,13 +86,13 @@ def run_sequence(scf, params):
     cf = scf.cf
 
     # Number of setpoints sent per second
-    fs = 4
+    fs = 10
     fsi = 1.0 / fs
 
     # Base altitude in meters
     base = 0.2
 
-    corr = 5
+    corr = 8
 
     d = params['d']
     z = params['z']
@@ -120,18 +120,18 @@ def run_sequence(scf, params):
     #                                          0, 360.0 / circle_time, z)
     #         time.sleep(fsi)
 
-    circle_time = 8
-    large_circle_time = 4
+    circle_time = 6
+    large_circle_number = 4
     steps = circle_time*fs
-    for j in range(large_circle_time):
+    for j in range(large_circle_number):
         for i in range(steps):
             if params['startBottom']:
                 print(i)
                 cf.commander.send_hover_setpoint(
-                    largeD*math.pi/(circle_time*large_circle_time), corr*(2*math.pi/steps)*(d/2)*math.cos(2*math.pi*i/steps), 360.0/(circle_time*large_circle_time), z+(d/2)*(1-math.cos(2*math.pi*i/steps)))
+                    largeD*math.pi/(circle_time*large_circle_number), corr*(2*math.pi/steps)*(d/2)*math.cos(2*math.pi*i/steps), 360.0/(circle_time*large_circle_number), z+(d/2)*(1-math.cos(2*math.pi*i/steps)))
             else:
                 cf.commander.send_hover_setpoint(
-                    largeD*math.pi/(circle_time*large_circle_time), -corr*(2*math.pi/steps)*(d/2)*math.cos(2*math.pi*i/steps), 360.0/(circle_time*large_circle_time), z+(d/2)*(1+math.cos(2*math.pi*i/steps)))
+                    largeD*math.pi/(circle_time*large_circle_number), -corr*(2*math.pi/steps)*(d/2)*math.cos(2*math.pi*i/steps), 360.0/(circle_time*large_circle_number), z+(d/2)*(1+math.cos(2*math.pi*i/steps)))
 
             time.sleep(fsi)
 
